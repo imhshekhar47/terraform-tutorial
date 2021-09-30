@@ -1,5 +1,10 @@
 aws.env
 
+plans/
 .terraform
 *.lock.hcl
 *.tfstate 
+
+# Exclude below in dev
+*.pem
+terraform.tfstate.backup

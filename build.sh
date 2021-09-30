@@ -27,9 +27,10 @@ confirm_evironment() {
 }
 
 delete_terraform_state() {
-    read -p "You are going to delete the terraform state. \nType yes to confirm.": confirm
+    read -p "You are going to delete the terraform state. Type yes to confirm.": confirm
     if [[ "${confirm}" == "yes" ]]; then
-        echo "Deleting terraform state files"        
+        echo "Deleting terraform state files" 
+        rm .terraform.lock.hcl terraform.tfstate       
     else
         echo "Your choice was '${confirm}' No action taken."
     fi

@@ -12,7 +12,7 @@ variable "hs_common_tags" {
     type = map(string) 
 
     default = {
-        maintainer = "hshekhar"
+        maintainer = "imhshekhar47"
     }
 }
 
@@ -28,17 +28,35 @@ variable "aws_region_dtl" {
 variable "hs_vpc_dtl" {
     description = "Details for the vpc."
     type = object({
-        cidr_block = string,
-        subnet_count = number
+        name = string
+        cidr_block = string
     })
 }
 
-variable "hs_vpc_subnets_dtl" {
-    description = "(optional) describe your variable"
+variable "hs_vpc_pub_subnets_dtl" {
+    description = "Public subnet details"
     
     type = list(object({
-        isPublic = bool,
         name = string
+        cidr_block = string
         availability_zone = string
     }))
+}
+
+variable "hs_vpc_pvt_subnets_dtl" {
+    description = "Private subnet details"
+    
+    type = list(object({
+        name = string
+        cidr_block = string
+        availability_zone = string
+    }))
+}
+
+variable "hs_vpc_enable_nat_gateway" {
+    description = "Should the NAT gateway be created"
+
+    type = bool
+
+    default = false
 }
