@@ -21,7 +21,7 @@ variable "env" {
 module "vpc" {
     source = "./modules/vpc"
 
-    hs_common_tags = {
+    common_tags = {
         maintainer = "imhshekhar47"
         site = var.env
     }
@@ -37,14 +37,14 @@ module "vpc" {
         ]
     }
 
-    hs_environment_tag = var.env
+    environment_tag = var.env
 
-    hs_vpc_dtl = {
+    vpc_dtl = {
         name = "${var.env}-primary-vpc"
         cidr_block = "10.0.0.0/16"
     }
 
-    hs_vpc_pub_subnets_dtl = [ 
+    pub_subnets_dtl = [ 
         {
             name = "${var.env}-pub-subnet-a",
             availability_zone = "us-west-2a",
@@ -57,7 +57,7 @@ module "vpc" {
         }     
     ]
 
-    hs_vpc_pvt_subnets_dtl = [
+    pvt_subnets_dtl = [
         {
             name = "${var.env}-pvt-subnet-a",
             availability_zone = "us-west-2a",
@@ -70,7 +70,8 @@ module "vpc" {
         } 
     ]
 
-    hs_vpc_enable_nat_gateway = false
+    enable_nat_gateway = false
+    enable_cw_flow_logs = true
 }
 
 module "bastion" {

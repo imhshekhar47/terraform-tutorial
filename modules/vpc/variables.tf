@@ -1,12 +1,12 @@
-variable "hs_environment_tag" {
-    description = "Environment details."
+variable "environment_tag" {
+    description = "Environment tag (example dev/prod/test)."
 
     type = string
 
     default = "dev"
 }
 
-variable "hs_common_tags" {
+variable "common_tags" {
     description = "Common tags"
 
     type = map(string) 
@@ -25,7 +25,7 @@ variable "aws_region_dtl" {
     })
 }
 
-variable "hs_vpc_dtl" {
+variable "vpc_dtl" {
     description = "Details for the vpc."
     type = object({
         name = string
@@ -33,7 +33,7 @@ variable "hs_vpc_dtl" {
     })
 }
 
-variable "hs_vpc_pub_subnets_dtl" {
+variable "pub_subnets_dtl" {
     description = "Public subnet details"
     
     type = list(object({
@@ -43,7 +43,7 @@ variable "hs_vpc_pub_subnets_dtl" {
     }))
 }
 
-variable "hs_vpc_pvt_subnets_dtl" {
+variable "pvt_subnets_dtl" {
     description = "Private subnet details"
     
     type = list(object({
@@ -53,10 +53,15 @@ variable "hs_vpc_pvt_subnets_dtl" {
     }))
 }
 
-variable "hs_vpc_enable_nat_gateway" {
+variable "enable_nat_gateway" {
     description = "Should the NAT gateway be created"
-
     type = bool
-
     default = false
+}
+
+variable "enable_cw_flow_logs" {
+    description = "Enable cloudwatch flow logs for VPC"
+    type = bool
+    default = false
+  
 }

@@ -12,15 +12,17 @@ resource "aws_key_pair" "ec2_bastion_key" {
   })
 }
 
+# Generate key-pair file bastion-key.pem
 resource "local_file" "ec2_bastion_key_file" {
   content = "${tls_private_key.ec2_pvt_key.private_key_pem}"
   filename = "bastion-key.pem"
-  file_permission = "0400"
-  provisioner "local-exec" {
-    command = "chmod 400 bastion-key.pem"
-  }
+  #file_permission = "0400"
+  # provisioner "local-exec" {
+  #   command = "chmod 400 bastion-key.pem"
+  # }
 }
 
+# Create security group for allowing SSH from anywhere
 resource "aws_security_group" "ec2_sg_public_ssh" {
   name = "ec2-sg-public-ssh"
   description = "Allow ssh from internet"
@@ -38,11 +40,7 @@ resource "aws_security_group_rule" "ec2_sfg_public_ssh_rule" {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]   
-
-    tags = merge(var.common_tags, {
-      Name = "allow-ssh"
-    }
+    cidr_blocks = ["0.0.0.0/0"] 
 }
 
 resource "aws_instance" "ec2_bastion_host" {

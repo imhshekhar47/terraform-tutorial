@@ -1,9 +1,9 @@
 # Create hs-vpc
 resource "aws_vpc" "hs_vpc" {
-    cidr_block = var.hs_vpc_dtl.cidr_block
+    cidr_block = var.vpc_dtl.cidr_block
 
-    tags = merge( var.hs_common_tags, {
-        Name = var.hs_vpc_dtl.name,
+    tags = merge( var.common_tags, {
+        Name = var.vpc_dtl.name,
     })
 }
 
@@ -11,53 +11,53 @@ resource "aws_vpc" "hs_vpc" {
 resource "aws_internet_gateway" "hs_igw" {
     vpc_id = aws_vpc.hs_vpc.id 
 
-    tags = merge(var.hs_common_tags, {
-        Name = "${var.hs_environment_tag}-igw"
+    tags = merge(var.common_tags, {
+        Name = "${var.environment_tag}-igw"
     })
 }
 
 resource "aws_subnet" "hs_pub_subnet" {
-    count = length(var.hs_vpc_pub_subnets_dtl)
+    count = length(var.pub_subnets_dtl)
     
     vpc_id = aws_vpc.hs_vpc.id
-    cidr_block = var.hs_vpc_pub_subnets_dtl[count.index].cidr_block
-    availability_zone = var.hs_vpc_pub_subnets_dtl[count.index].availability_zone
+    cidr_block = var.pub_subnets_dtl[count.index].cidr_block
+    availability_zone = var.pub_subnets_dtl[count.index].availability_zone
 
-    tags = merge(var.hs_common_tags, {
-        Name = var.hs_vpc_pub_subnets_dtl[count.index].name
+    tags = merge(var.common_tags, {
+        Name = var.pub_subnets_dtl[count.index].name
     })
 }
 
 # Create hs-natgw-eip
 resource "aws_eip" "hs_natgw_eip" {
-    count = var.hs_vpc_enable_nat_gateway ? length(var.hs_vpc_pub_subnets_dtl) : 0
+    count = var.enable_nat_gateway ? length(var.pub_subnets_dtl) : 0
 
-    tags = merge(var.hs_common_tags, {
-        Name = "${var.hs_environment_tag}-eip-${count.index}"
+    tags = merge(var.common_tags, {
+        Name = "${var.environment_tag}-eip-${count.index}"
     })
 }
 
 # Create hs-nat-gw
 resource "aws_nat_gateway" "hs_nat_gw" {
-    count = var.hs_vpc_enable_nat_gateway ? length(var.hs_vpc_pub_subnets_dtl) : 0
+    count = var.enable_nat_gateway ? length(var.pub_subnets_dtl) : 0
 
     subnet_id = aws_subnet.hs_pub_subnet[count.index].id
     allocation_id = aws_eip.hs_natgw_eip[count.index].id
 
-    tags = merge(var.hs_common_tags, {
-        Name = "${var.hs_environment_tag}-nat-gw-${count.index}"
+    tags = merge(var.common_tags, {
+        Name = "${var.environment_tag}-nat-gw-${count.index}"
     })
 }
 
 resource "aws_subnet" "hs_pvt_subnet" {
-    count = length(var.hs_vpc_pvt_subnets_dtl)
+    count = length(var.pvt_subnets_dtl)
     
     vpc_id = aws_vpc.hs_vpc.id
-    cidr_block = var.hs_vpc_pvt_subnets_dtl[count.index].cidr_block
-    availability_zone = var.hs_vpc_pvt_subnets_dtl[count.index].availability_zone
+    cidr_block = var.pvt_subnets_dtl[count.index].cidr_block
+    availability_zone = var.pvt_subnets_dtl[count.index].availability_zone
 
-    tags = merge(var.hs_common_tags, {
-        Name = var.hs_vpc_pvt_subnets_dtl[count.index].name
+    tags = merge(var.common_tags, {
+        Name = var.pvt_subnets_dtl[count.index].name
     })
 }
 
@@ -65,8 +65,8 @@ resource "aws_subnet" "hs_pvt_subnet" {
 resource "aws_route_table" "hs_pub_route_table" {
     vpc_id = aws_vpc.hs_vpc.id
 
-    tags = merge(var.hs_common_tags, {
-        Name = "${var.hs_environment_tag}-pub-rt"
+    tags = merge(var.common_tags, {
+        Name = "${var.environment_tag}-pub-rt"
     })
 }
 
@@ -78,7 +78,7 @@ resource "aws_route" "hs_pub_route" {
 }
 
 resource "aws_route_table_association" "hs_pub_subnet_association" {
-    count = length(var.hs_vpc_pub_subnets_dtl)
+    count = length(var.pub_subnets_dtl)
 
     subnet_id = aws_subnet.hs_pub_subnet[count.index].id
     route_table_id = aws_route_table.hs_pub_route_table.id
@@ -87,18 +87,18 @@ resource "aws_route_table_association" "hs_pub_subnet_association" {
 
 # Create route tables for private subnets
 resource "aws_route_table" "hs_pvt_route_table" {
-    count = length(var.hs_vpc_pvt_subnets_dtl)
+    count = length(var.pvt_subnets_dtl)
 
     vpc_id = aws_vpc.hs_vpc.id
 
-    tags = merge(var.hs_common_tags, {
-        Name = "${var.hs_environment_tag}-pvt-rt-${count.index}"
+    tags = merge(var.common_tags, {
+        Name = "${var.environment_tag}-pvt-rt-${count.index}"
     })
 }
 
 # Add route to hs_pvt_route_table[*]
 resource "aws_route" "hs_pvt_route" {
-    count = var.hs_vpc_enable_nat_gateway ? length(var.hs_vpc_pvt_subnets_dtl) : 0
+    count = var.enable_nat_gateway ? length(var.pvt_subnets_dtl) : 0
 
     route_table_id = aws_route_table.hs_pvt_route_table[count.index].id
     destination_cidr_block = "0.0.0.0/0"
@@ -106,12 +106,69 @@ resource "aws_route" "hs_pvt_route" {
 }
 
 resource "aws_route_table_association" "hs_pvt_subnet_association" {
-    count = length(var.hs_vpc_pvt_subnets_dtl)
+    count = length(var.pvt_subnets_dtl)
 
     subnet_id = aws_subnet.hs_pvt_subnet[count.index].id
     route_table_id = aws_route_table.hs_pvt_route_table[count.index].id
 }
 
+resource "aws_iam_role" "cw_access_role" {
+    name = "cw-access-role"
+    description = "The IAM role created to give access of Cloudwatch"
 
+    assume_role_policy = jsonencode({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "",
+                "Effect" : "Allow",
+                "Principal": {
+                    "Service": "vpc-flow-logs.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    })
+}
+
+resource "aws_iam_role_policy" "cw_access_role_policy" {
+    name = "cw-access-role-policy"
+    role = aws_iam_role.cw_access_role.id
+
+    policy = jsonencode({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams"
+                ],
+                "Resource": "*"
+            }
+        ]
+    })
+}
+
+resource "aws_cloudwatch_log_group" "vpc-cw-log-group" {
+    name = "vpc-cw-log"
+
+    tags = merge(var.common_tags, {
+        Name = "vpc-cw-log"
+    })
+}
+
+
+resource "aws_flow_log" "vpc-flow-log" {
+    count = var.enable_cw_flow_logs ? 1 : 0
+
+    iam_role_arn = aws_iam_role.cw_access_role.arn
+    log_destination = aws_cloudwatch_log_group.vpc-cw-log-group.arn
+    traffic_type = "ALL"
+    vpc_id = aws_vpc.hs_vpc.id
+}
 
 
