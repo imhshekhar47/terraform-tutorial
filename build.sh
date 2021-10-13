@@ -30,10 +30,14 @@ delete_terraform_state() {
     read -p "You are going to delete the terraform state. Type yes to confirm.": confirm
     if [[ "${confirm}" == "yes" ]]; then
         echo "Deleting terraform state files" 
-        rm .terraform.lock.hcl terraform.tfstate       
+        rm .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup    
     else
         echo "Your choice was '${confirm}' No action taken."
     fi
+}
+
+state() {
+    terraform state list
 }
 
 
@@ -48,6 +52,9 @@ case "${ACTION}" in
         ;;
     delete)
         delete_terraform_state
+        ;;
+    state)
+        state
         ;;
     *)
         echo "Bad usage"

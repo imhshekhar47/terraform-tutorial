@@ -22,25 +22,30 @@ resource "local_file" "ec2_bastion_key_file" {
   # }
 }
 
-# Create security group for allowing SSH from anywhere
-resource "aws_security_group" "ec2_sg_public_ssh" {
-  name = "ec2-sg-public-ssh"
+# Create security group for bastion
+resource "aws_security_group" "ec2_bastion_sg" {
+  name = "ec2-bastion-sg"
   description = "Allow ssh from internet"
   vpc_id = var.ec2_bastion_dtl.vpc_id
 
-  tags = merge(var.common_tags, {
-    Name = "ec2-sg-public-ssh"
-  })
-}
+    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = [ "0.0.0.0/0" ]
+    }
 
-resource "aws_security_group_rule" "ec2_sfg_public_ssh_rule" {
-    type = "ingress"
-    security_group_id = aws_security_group.ec2_sg_public_ssh.id
-    description = "SSH from anywhere"
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = [ "0.0.0.0/0" ]
+    }
+
+
+  tags = merge(var.common_tags, {
+    Name = "ec2-bastion-sg"
+  })
 }
 
 resource "aws_instance" "ec2_bastion_host" {
@@ -49,7 +54,8 @@ resource "aws_instance" "ec2_bastion_host" {
   instance_type = var.ec2_bastion_dtl.type
   key_name = aws_key_pair.ec2_bastion_key.key_name
   associate_public_ip_address = true
-  security_groups = [aws_security_group.ec2_sg_public_ssh.id]
+  security_groups = [aws_security_group.ec2_bastion_sg.id]
+  user_data = filebase64("${path.module}/boot.sh")
 
   tags = merge(var.common_tags,  {
     Name = var.ec2_bastion_dtl.name

@@ -62,6 +62,10 @@ variable "enable_nat_gateway" {
 variable "enable_cw_flow_logs" {
     description = "Enable cloudwatch flow logs for VPC"
     type = bool
-    default = false
-  
+    default = false 
+}
+
+variable "enable_pub_alb" {
+    description = "Enable application load balancer in vpc"
+    type = bool
 }
