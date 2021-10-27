@@ -1,9 +1,19 @@
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+}
+
+locals {
+  cluster_name = "eks-cluster-${random_string.suffix.result}"
+}
+
 # Create hs-vpc
 resource "aws_vpc" "hs_vpc" {
     cidr_block = var.vpc_dtl.cidr_block
 
     tags = merge( var.common_tags, {
         Name = var.vpc_dtl.name,
+        "kubernetes.io/cluster/${local.cluster_name}" = "shared"
     })
 }
 
@@ -24,7 +34,9 @@ resource "aws_subnet" "hs_pub_subnet" {
     availability_zone = var.pub_subnets_dtl[count.index].availability_zone
 
     tags = merge(var.common_tags, {
-        Name = var.pub_subnets_dtl[count.index].name
+        Name = var.pub_subnets_dtl[count.index].name,
+        "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+        "kubernetes.io/role/elb"                      = "1"
     })
 }
 
@@ -33,7 +45,9 @@ resource "aws_eip" "hs_natgw_eip" {
     count = var.enable_nat_gateway ? length(var.pub_subnets_dtl) : 0
 
     tags = merge(var.common_tags, {
-        Name = "${var.environment_tag}-eip-${count.index}"
+        Name = "${var.environment_tag}-eip-${count.index}",
+        "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+        "kubernetes.io/role/elb"                      = "1"
     })
 }
 

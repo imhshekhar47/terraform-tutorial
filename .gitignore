@@ -1,5 +1,5 @@
 aws.env
-
+.config/
 plans/
 .terraform
 *.lock.hcl
